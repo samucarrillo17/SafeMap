@@ -8,6 +8,9 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
+import { BarrioModule } from './barrio/barrio.module';
+import { CalificacionModule } from './calificacion/calificacion.module';
+import { UsuarioModule } from './usuario/usuario.module';
 
 @Module({
   imports: [
@@ -48,6 +51,12 @@ import { createKeyv } from '@keyv/redis';
     CommonModule,
 
     AuthModule,
+
+    BarrioModule,
+
+    CalificacionModule,
+
+    UsuarioModule,
   ],
   controllers: [],
   providers: [
