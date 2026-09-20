@@ -1,22 +1,45 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
+import { handleDBException } from '../common/helpers/handleDbException';
 import { UpdateCalificacionDto } from './dto/update-calificacion.dto';
 import { CreateCalificacionDto } from './dto/create-calificacion.dto';
-
+import { Calificacion } from './entities/calificacion.entity';
 
 @Injectable()
 export class CalificacionService {
-  create(createCalificacionDto: CreateCalificacionDto) {
-    return 'This action adds a new calificacion';
+  constructor(
+    @InjectRepository(Calificacion)
+    private readonly calificacionesRepository: Repository<Calificacion>,
+  ) {}
+
+  async create(
+    createCalificacionDto: CreateCalificacionDto,
+    barrioId: string,
+    usuarioId: string,
+  ): Promise<Calificacion> {
+    try {
+      const calificacion = this.calificacionesRepository.create({
+        ...createCalificacionDto,
+        barrio: { id: barrioId },
+        usuario: { id: usuarioId },
+      });
+
+      return await this.calificacionesRepository.save(calificacion);
+    } catch (error) {
+      handleDBException(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all calificacion`;
+  async findAll(barrioId: string): Promise<Calificacion[]> {
+    return this.calificacionesRepository.find({
+      where: { barrio: { id: barrioId } },
+      relations: { usuario: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} calificacion`;
-  }
+  
 
   update(id: number, updateCalificacionDto: UpdateCalificacionDto) {
     return `This action updates a #${id} calificacion`;
