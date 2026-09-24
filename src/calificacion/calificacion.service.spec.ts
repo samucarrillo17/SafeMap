@@ -15,6 +15,7 @@ describe('CalificacionService', () => {
   const mockCalificacionesRepository = {
     create: jest.fn(),
     save: jest.fn(),
+    find:jest.fn(),
   };
 
   beforeEach(async () => {
@@ -104,6 +105,39 @@ describe('CalificacionService', () => {
       await expect(
         service.create(createCalificacionDto, barrioId, usuarioId),
       ).rejects.toThrow();
+    });
+  });
+
+
+
+  describe('findAll', () => {
+    const barrioId = 'uuid-barrio-123';
+
+    const mockCalificaciones = [
+      {
+        id: 'uuid-calificacion-789',
+        usuario: {
+          id: 'uuid-usuario-657',
+          correo: 'correo@gmail.com',
+          nombre: 'Juanito Pérez',
+        },
+        estrellas: 4,
+        fue_victima: false,
+        comentario: 'buen barrio',
+        created_at: new Date('2026-09-24T01:56:00.168Z'),
+      },
+    ];
+
+    it('debe retornar las calificaciones del barrio', async () => {
+      mockCalificacionesRepository.find.mockResolvedValue(mockCalificaciones);
+
+      const result = await service.findAll(barrioId);
+
+      expect(repository.find).toHaveBeenCalledWith({
+        where: { barrio: { id: barrioId } },
+        relations: { usuario: true },
+      });
+      expect(result).toEqual(mockCalificaciones);
     });
   });
 });
