@@ -20,7 +20,7 @@ import { GetUser } from '../auth/decorator/get-user.decorator';
 export class CalificacionController {
   constructor(private readonly calificacionService: CalificacionService) {}
 
-  @Post()
+  @Post(':barrioId')
   @Auth()
   create(
     @Param('barrioId', ParseUUIDPipe) barrioId: string,
@@ -34,14 +34,12 @@ export class CalificacionController {
     );
   }
 
-  @Get(":id")
+  @Get(':barrioId')
   @Auth()
   findAll(@Param('barrioId', ParseUUIDPipe) barrioId: string) {
-  
     return this.calificacionService.findAll(barrioId);
   }
 
-  
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -54,6 +52,4 @@ export class CalificacionController {
   remove(@Param('id') id: string) {
     return this.calificacionService.remove(+id);
   }
-
-
 }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, VirtualColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Calificacion } from '../../calificacion/entities/calificacion.entity';
 import type{ Geometry } from 'geojson';
 
@@ -7,12 +7,6 @@ import type{ Geometry } from 'geojson';
 export class Barrio {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
-
-  @VirtualColumn({
-    query: (alias) =>
-      `SELECT COUNT(*) FROM "calificaciones" WHERE "barrio_id" = ${alias}.id`,
-  })
-  contadorCalificaciones?: number;
 
   @Column({ type: 'text', unique: true })
   nombre!: string;
@@ -29,6 +23,9 @@ export class Barrio {
 
   @Column({ type: 'text', default: 'VERDE' })
   estado_semaforo!: string;
+
+  @Column({ type: 'int', default: 0 })
+  contador_calificaciones!: number;
 
   @OneToMany(() => Calificacion, (calificacion) => calificacion.barrio)
   calificacion!: Calificacion[];
