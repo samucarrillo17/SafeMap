@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Calificacion } from '../../calificacion/entities/calificacion.entity';
 import type{ Geometry } from 'geojson';
+import { EstadoSemaforo } from '../interfaces/estado-semaforo.interface';
 
 
 @Entity('barrios')
@@ -21,7 +22,13 @@ export class Barrio {
   @Column({ type: 'float', default: 1.0 })
   puntaje_promedio!: number;
 
-  @Column({ type: 'text', default: 'VERDE' })
+  @Column(
+    {
+      name: 'estado_semaforo',
+      type: 'enum',
+      enum:EstadoSemaforo,
+      default: EstadoSemaforo.SIN_CALIFICAR 
+    })
   estado_semaforo!: string;
 
   @Column({ type: 'int', default: 0 })

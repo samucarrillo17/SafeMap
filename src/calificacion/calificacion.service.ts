@@ -7,6 +7,7 @@ import { UpdateCalificacionDto } from './dto/update-calificacion.dto';
 import { CreateCalificacionDto } from './dto/create-calificacion.dto';
 import { Calificacion } from './entities/calificacion.entity';
 import { Barrio } from '../barrio/entities/barrio.entity';
+import { calcularEstadoSemaforo } from '../common/helpers/calcularEstadoSemaforo';
 
 @Injectable()
 export class CalificacionService {
@@ -60,12 +61,15 @@ export class CalificacionService {
       .where('c.barrio_id = :barrioId', { barrioId })
       .getRawOne();
 
-    const total = parseInt(stats?.count || '0', 10);
-    const promedio = parseFloat(parseFloat(stats?.avg || '0').toFixed(2));
+    const total:number = parseInt(stats?.count || '0', 10);
+    const promedio:number = parseFloat(parseFloat(stats?.avg || '0').toFixed(2));
+
+    const nuevoEstado = calcularEstadoSemaforo(promedio, total);
 
     await this.barrioRepository.update(barrioId, {
       contador_calificaciones: total,
       puntaje_promedio: promedio,
+      estado_semaforo: nuevoEstado,
     });
   }
 }
