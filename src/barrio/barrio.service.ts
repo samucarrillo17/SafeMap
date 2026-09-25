@@ -74,4 +74,6 @@ export class BarrioService {
   remove(id: number) {
     return `This action removes a #${id} barrio`;
   }
+
+  
 }

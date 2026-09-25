@@ -8,5 +8,6 @@ import { Barrio } from './entities/barrio.entity';
   imports: [TypeOrmModule.forFeature([Barrio])],
   controllers: [BarrioController],
   providers: [BarrioService],
+  exports:[TypeOrmModule]
 })
 export class BarrioModule {}
