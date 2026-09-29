@@ -19,7 +19,7 @@ export class Barrio {
   })
   geometria!: Geometry;
 
-  @Column({ type: 'float', default: 1.0 })
+  @Column({ type: 'float', default: 0 })
   puntaje_promedio!: number;
 
   @Column(

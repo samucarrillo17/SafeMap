@@ -15,6 +15,7 @@ async function bootstrap() {
   );
   app.use(helmet())
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.enableCors()
   await app.listen(process.env.PORT ?? 3002);
 }
 bootstrap();
