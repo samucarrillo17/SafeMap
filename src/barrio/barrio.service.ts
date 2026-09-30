@@ -35,31 +35,43 @@ export class BarrioService {
   async seedBarrios() {
     const filePath = path.join(
       process.cwd(),
-      'src/common/data/barrios_barranquilla.json',
+      'src/common/data/barrios_barranquilla.geojson',
     );
     const fileData = fs.readFileSync(filePath, 'utf8');
     const geojson = JSON.parse(fileData);
 
+
+    const nombresProcesados = new Set<string>();
     const barriosToSave: DeepPartial<Barrio>[] = [];
-    // 2. Recorrer cada barrio en el arreglo de features
+
+   
     for (const feature of geojson.features) {
       const nombreBarrio =
         feature.properties.nombre_barrio || feature.properties.NOMBRE;
       const geometriaLimpia = feature.geometry;
 
       if (nombreBarrio && geometriaLimpia) {
-        const barrio = this.barriosRepository.create({
-          nombre: nombreBarrio,
-          geometria: geometriaLimpia,
-        });
-        barriosToSave.push(barrio);
+       
+        const nombreClave = nombreBarrio.trim().toLowerCase();
+
+        
+        if (!nombresProcesados.has(nombreClave)) {
+          nombresProcesados.add(nombreClave);
+
+          const barrio = this.barriosRepository.create({
+            nombre: nombreBarrio.trim(),
+            geometria: geometriaLimpia,
+          });
+          barriosToSave.push(barrio);
+        }
       }
     }
 
-    // 3. Guardar todos los barrios de golpe en la BD
+    // 3. Guardar en base de datos
     await this.barriosRepository.save(barriosToSave);
+
     return {
-      message: `Se registraron ${barriosToSave.length} barrios con éxito.`,
+      message: `Seeding completado con éxito. Se insertaron ${barriosToSave.length} barrios.`,
     };
   }
 
@@ -74,6 +86,4 @@ export class BarrioService {
   remove(id: number) {
     return `This action removes a #${id} barrio`;
   }
-
-  
 }
