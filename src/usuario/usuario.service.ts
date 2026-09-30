@@ -6,8 +6,7 @@ import { handleDBException } from '../common/helpers/handleDbException';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { Usuario } from './entities/usuario.entity';
-
-type UsuarioPublico = Pick<Usuario, 'id' | 'correo' | 'nombre' | 'createdAt'>;
+import { UsuarioPublico } from './interfaces/usuario-publico.pick';
 
 @Injectable()
 export class UsuarioService {
@@ -66,6 +65,7 @@ export class UsuarioService {
         correo: true,
         contrasena: true,
         nombre: true,
+        rol:true,
         createdAt: true,
       },
     });
@@ -76,6 +76,7 @@ export class UsuarioService {
       id: usuario.id,
       correo: usuario.correo,
       nombre: usuario.nombre,
+      rol:usuario.rol,
       createdAt: usuario.createdAt,
     };
   }
