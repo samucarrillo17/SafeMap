@@ -65,7 +65,6 @@ export class UsuarioService {
         correo: true,
         contrasena: true,
         nombre: true,
-        rol:true,
         createdAt: true,
       },
     });
@@ -76,7 +75,6 @@ export class UsuarioService {
       id: usuario.id,
       correo: usuario.correo,
       nombre: usuario.nombre,
-      rol:usuario.rol,
       createdAt: usuario.createdAt,
     };
   }
