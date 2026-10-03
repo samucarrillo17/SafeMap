@@ -28,10 +28,6 @@ export class BarrioController {
     return this.barrioService.findAll();
   }
 
-  @Post('seed')
-  seedBarrios() {
-    return this.barrioService.seedBarrios();
-  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
