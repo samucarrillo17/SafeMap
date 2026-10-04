@@ -3,11 +3,29 @@ services:
     image: postgis/postgis:14-3.4
     restart: 'always'
     ports:
-      # PostgreSQL escucha dentro del contenedor siempre en 5432.
       - "${DB_PORT}:5432"
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    container_name: safe-map
+    container_name: bd-safe-map
     volumes:
       - ./postgrest:/var/lib/postgresql/data
+
+  api-safe-map:
+    build: .
+    container_name: api-safe-map
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - .:/usr/src/app               
+      - /usr/src/app/node_modules  
+    command: npm run start:dev       
+    environment:
+      DB_HOST: db 
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      - db
+     
