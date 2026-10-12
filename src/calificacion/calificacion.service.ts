@@ -8,6 +8,7 @@ import { CreateCalificacionDto } from './dto/create-calificacion.dto';
 import { Calificacion } from './entities/calificacion.entity';
 import { Barrio } from '../barrio/entities/barrio.entity';
 import { calcularEstadoSemaforo } from '../common/helpers/calcularEstadoSemaforo';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CalificacionService {
@@ -16,6 +17,7 @@ export class CalificacionService {
     private readonly calificacionesRepository: Repository<Calificacion>,
     @InjectRepository(Barrio)
     private readonly barrioRepository: Repository<Barrio>,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(
@@ -24,14 +26,27 @@ export class CalificacionService {
     usuarioId: string,
   ): Promise<Calificacion> {
     try {
+      let etiquetaIA = 'General';
+      if (
+        createCalificacionDto.comentario &&
+        createCalificacionDto.comentario.trim().length > 0
+      ) {
+        etiquetaIA = await this.obtenerClasificacionDeIA(createCalificacionDto.comentario);
+      }
+
+
       const calificacion = this.calificacionesRepository.create({
         ...createCalificacionDto,
         barrio: { id: barrioId },
         usuario: { id: usuarioId },
+        etiqueta: etiquetaIA,
       });
 
-      const calificacionGuardada = await this.calificacionesRepository.save(calificacion);
-      await this.updateBarrioMetrics(barrioId)
+     
+
+      const calificacionGuardada =
+        await this.calificacionesRepository.save(calificacion);
+      await this.updateBarrioMetrics(barrioId);
       return calificacionGuardada;
     } catch (error) {
       handleDBException(error);
@@ -61,8 +76,10 @@ export class CalificacionService {
       .where('c.barrio_id = :barrioId', { barrioId })
       .getRawOne();
 
-    const total:number = parseInt(stats?.count || '0', 10);
-    const promedio:number = parseFloat(parseFloat(stats?.avg || '0').toFixed(2));
+    const total: number = parseInt(stats?.count || '0', 10);
+    const promedio: number = parseFloat(
+      parseFloat(stats?.avg || '0').toFixed(2),
+    );
 
     const nuevoEstado = calcularEstadoSemaforo(promedio, total);
 
@@ -71,5 +88,23 @@ export class CalificacionService {
       puntaje_promedio: promedio,
       estado_semaforo: nuevoEstado,
     });
+  }
+
+  private async obtenerClasificacionDeIA(comentario: string): Promise<string> {
+    try {
+      const url = this.configService.get('URL_MICROPY');
+      const respuesta = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto: comentario }),
+      });
+
+      if (!respuesta.ok) return 'General';
+
+      const data = await respuesta.json();
+      return data.etiqueta; 
+    } catch (error:any) {
+      return 'General'
+    }
   }
 }
