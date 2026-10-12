@@ -1,32 +1,47 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { CalificacionService } from './calificacion.service';
 import { Calificacion } from './entities/calificacion.entity';
 import { CreateCalificacionDto } from './dto/create-calificacion.dto';
-
+import { Barrio } from '../barrio/entities/barrio.entity';
 
 describe('CalificacionService', () => {
   let service: CalificacionService;
   let repository: Repository<Calificacion>;
 
-  // 1. MOCK DEL REPOSITORIO DE TYPEORM
-  // Creamos un objeto falso con Jest functions (jest.fn()) para simular la BD
   const mockCalificacionesRepository = {
     create: jest.fn(),
     save: jest.fn(),
-    find:jest.fn(),
+    find: jest.fn(),
+  };
+
+  const mockBarriosRepository = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockConfigService = {
+    get: jest.fn(),
   };
 
   beforeEach(async () => {
-    // 2. CONFIGURACIÓN DEL MÓDULO DE PRUEBA DE NESTJS
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CalificacionService,
         {
-          // Reemplazamos la conexión real a TypeORM por nuestro mock
           provide: getRepositoryToken(Calificacion),
           useValue: mockCalificacionesRepository,
+        },
+        {
+          provide: getRepositoryToken(Barrio), 
+          useValue: mockBarriosRepository,
+        },
+        {
+          provide: ConfigService, 
+          useValue: mockConfigService,
         },
       ],
     }).compile();
@@ -36,7 +51,6 @@ describe('CalificacionService', () => {
       getRepositoryToken(Calificacion),
     );
 
-    // Limpiamos los contadores e historiales de llamadas entre prueba y prueba
     jest.clearAllMocks();
   });
 
@@ -45,7 +59,6 @@ describe('CalificacionService', () => {
   });
 
   describe('create', () => {
-    // Datos de prueba (Fixtures)
     const barrioId = 'uuid-barrio-123';
     const usuarioId = 'uuid-usuario-456';
     const createCalificacionDto: CreateCalificacionDto = {
@@ -59,10 +72,11 @@ describe('CalificacionService', () => {
       ...createCalificacionDto,
       barrio: { id: barrioId },
       usuario: { id: usuarioId },
+      etiqueta: 'Zona Segura y Tranquila',
     };
 
     it('debe crear y guardar una calificación exitosamente (Camino Feliz)', async () => {
-      // 1. ARRANGE (Preparar respuestas del Mock)
+      // 1. ARRANGE (Simular respuestas del repositorio)
       mockCalificacionesRepository.create.mockReturnValue(
         mockCalificacionCreada,
       );
@@ -70,45 +84,50 @@ describe('CalificacionService', () => {
         mockCalificacionCreada,
       );
 
-      // 2. ACT (Ejecutar el método real)
+      // 2. SIMULAR MÉTODOS INTERNOS (Evitamos llamadas HTTP reales y lógica secundaria)
+      jest
+        .spyOn(service as any, 'obtenerClasificacionDeIA')
+        .mockResolvedValue('Zona Segura y Tranquila');
+      jest
+        .spyOn(service as any, 'updateBarrioMetrics')
+        .mockResolvedValue(undefined);
+
+      // 3. ACT
       const result = await service.create(
         createCalificacionDto,
         barrioId,
         usuarioId,
       );
 
-      // 3. ASSERT (Verificaciones)
-      // A. Verificar que el repositorio invocó create con el DTO y los IDs de relación
+      // 4. ASSERT
       expect(repository.create).toHaveBeenCalledWith({
         ...createCalificacionDto,
         barrio: { id: barrioId },
         usuario: { id: usuarioId },
+        etiqueta: 'Zona Segura y Tranquila',
       });
 
-      // B. Verificar que save fue llamado con el objeto retornado por create
       expect(repository.save).toHaveBeenCalledWith(mockCalificacionCreada);
-
-      // C. Verificar que la función retorna exactamente lo esperado
       expect(result).toEqual(mockCalificacionCreada);
     });
 
     it('debe capturar errores de base de datos y pasarlos a handleDBException', async () => {
-      // 1. ARRANGE (Simular que TypeORM falla en el save, por ejemplo por violación de llave foránea)
       const dbError = new Error('Database connection failed');
       mockCalificacionesRepository.create.mockReturnValue(
         mockCalificacionCreada,
       );
       mockCalificacionesRepository.save.mockRejectedValue(dbError);
 
-      // 2. ACT & 3. ASSERT
-      // Esperamos que la promesa sea rechazada cuando salta la excepción
+      // También simulamos las llamadas secundarias aquí
+      jest
+        .spyOn(service as any, 'obtenerClasificacionDeIA')
+        .mockResolvedValue('General');
+
       await expect(
         service.create(createCalificacionDto, barrioId, usuarioId),
       ).rejects.toThrow();
     });
   });
-
-
 
   describe('findAll', () => {
     const barrioId = 'uuid-barrio-123';
