@@ -38,6 +38,9 @@ export class Calificacion {
   @Column({ type: 'text', nullable: true })
   comentario?: string;
 
+  @Column({type: 'text'})
+  etiqueta!: string;
+
   @CreateDateColumn()
   created_at!: Date;
 }
