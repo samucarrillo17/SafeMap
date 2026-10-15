@@ -15,6 +15,7 @@ import { CreateCalificacionDto } from './dto/create-calificacion.dto';
 import { UpdateCalificacionDto } from './dto/update-calificacion.dto';
 import { Auth } from '../auth/decorator/auth.decorator';
 import { GetUser } from '../auth/decorator/get-user.decorator';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('calificacion')
 export class CalificacionController {
@@ -22,6 +23,7 @@ export class CalificacionController {
 
   @Post(':barrioId')
   @Auth()
+  @Throttle({ default: { limit: 5, ttl: 120 } })
   create(
     @Param('barrioId', ParseUUIDPipe) barrioId: string,
     @GetUser('id') usuarioId: string,
@@ -35,6 +37,7 @@ export class CalificacionController {
   }
 
   @Get(':barrioId')
+  @Throttle({ default: { limit: 5, ttl: 120 } })
   @Auth()
   findAll(@Param('barrioId', ParseUUIDPipe) barrioId: string) {
     return this.calificacionService.findAll(barrioId);

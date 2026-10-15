@@ -2,13 +2,19 @@ import {
   Logger,
   BadRequestException,
   InternalServerErrorException,
+  ConflictException,
 } from '@nestjs/common';
 
 export function handleDBException(err: any): never {
   const logger = new Logger('DBException');
 
   if (err.code === '23505') {
-    throw new BadRequestException(err.detail);
+    if (err.table?.includes('calificaciones')) {
+      throw new ConflictException(
+        'Ya has registrado una calificación para este barrio.',
+      )
+    }
+    throw new ConflictException('Esta acción ya fue realizada anteriormente.');
   }
 
   if (err.code === '23503') {
