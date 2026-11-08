@@ -37,6 +37,8 @@ import { UsuarioModule } from './usuario/usuario.module';
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
       database: process.env.DB_NAME,
+      ssl:true
+
     }),
 
     ThrottlerModule.forRoot({

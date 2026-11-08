@@ -1,19 +1,15 @@
-FROM node:18-alpine
-
-# Crear y definir el directorio de trabajo
-WORKDIR /usr/src/app
-
-# Copiar archivos de dependencias
-COPY package*.json ./
-
-# Instalar dependencias
-RUN npm install
-
-# Copiar el resto del código fuente
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 COPY . .
+RUN yarn build
 
-# Exponer el puerto
+FROM node:24-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production
+COPY --from=build /app/dist ./dist
 EXPOSE 3001
-
-# Comando de inicio predeterminado
-CMD ["npm", "run", "start:dev"]
+CMD ["node", "dist/src/main"]
