@@ -1,31 +1,12 @@
 services:
-  db:
-    image: postgis/postgis:14-3.4
-    restart: 'always'
-    ports:
-      - "${DB_PORT}:5432"
-    environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    container_name: bd-safe-map
-    volumes:
-      - ./postgrest:/var/lib/postgresql/data
-
   api-safe-map:
     build: .
     container_name: api-safe-map
     ports:
       - "${PORT}:${PORT}"
+    env_file:
+      - .env
     volumes:
-      - .:/usr/src/app               
-      - /usr/src/app/node_modules  
-    command: npm run start:dev       
-    environment:
-      DB_HOST: db 
-      DB_PORT: ${DB_PORT}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-    depends_on:
-      - db
-     
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start:dev

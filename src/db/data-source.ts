@@ -12,5 +12,6 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'barrio_db',
   entities: ['src/**/*.entity.ts'],
   migrations: ['src/db/migrations/*.ts'],
+  ssl: true,
   synchronize: false, 
 });
